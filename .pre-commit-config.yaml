@@ -1,0 +1,122 @@
+# Pre-commit configuration for Go project
+# See https://pre-commit.com for more information
+repos:
+  # Go language specific hooks using Makefile targets
+  - repo: local
+    hooks:
+      - id: go-fmt
+        name: Go Format
+        description: Runs gofmt to format Go code
+        entry: gofmt
+        args: [-w]
+        language: system
+        files: \.go$
+      - id: go-imports
+        name: Go Imports
+        description: Runs goimports to format Go imports
+        entry: goimports
+        args: [-w]
+        language: system
+        files: \.go$
+      - id: go-mod-tidy
+        name: Go Mod Tidy
+        description: Runs go mod tidy to clean up module dependencies
+        entry: go
+        args: [mod, tidy]
+        language: system
+        files: go\.(mod|sum)$
+        pass_filenames: false
+      - id: make-test
+        name: Make Test
+        description: Runs tests using make test
+        entry: make
+        args: [test]
+        language: system
+        files: \.go$
+        pass_filenames: false
+      - id: make-lint
+        name: Make Lint
+        description: Runs linter using make lint
+        entry: make
+        args: [lint]
+        language: system
+        files: \.go$
+        pass_filenames: false
+
+  # General hooks for all file types
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        name: Trim Trailing Whitespace
+        description: Trims trailing whitespace
+      - id: end-of-file-fixer
+        name: Fix End of Files
+        description: Makes sure files end in a newline and only a newline
+      - id: check-yaml
+        name: Check YAML
+        description: Attempts to load all yaml files to verify syntax
+      - id: check-added-large-files
+        name: Check for Large Files
+        description: Prevents giant files from being committed
+        args: ['--maxkb=500']
+      - id: check-case-conflict
+        name: Check Case Conflict
+        description: Checks for files with case conflicts
+      - id: check-merge-conflict
+        name: Check Merge Conflict
+        description: Checks for merge conflict strings
+      - id: check-executables-have-shebangs
+        name: Check Executables Have Shebangs
+        description: Checks that executables have shebangs
+      - id: check-shebang-scripts-are-executable
+        name: Check Shebang Scripts are Executable
+        description: Checks that shebang scripts are executable
+      - id: detect-private-key
+        name: Detect Private Keys
+        description: Detects presence of private keys
+      - id: mixed-line-ending
+        name: Mixed Line Ending
+        description: Replaces mixed line endings automatically with the most frequent line ending
+
+  # Security scanning
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        name: Detect Secrets
+        description: Detects high entropy strings that are likely to be passwords
+        args: ['--baseline', '.secrets.baseline']
+        exclude: go.sum
+
+  # Dockerfile linting (if you have Docker files)
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.13.1-beta
+    hooks:
+      - id: hadolint
+        name: Hadolint
+        description: Dockerfile linter
+
+  # Commit message linting
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.2.0
+    hooks:
+      - id: conventional-pre-commit
+        name: Conventional Commit
+        description: Ensures commit messages follow conventional commit format
+        stages: [commit-msg]
+
+# Global settings
+default_install_hook_types: [pre-commit, commit-msg, pre-push]
+default_stages: [pre-commit]
+
+# CI settings
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
